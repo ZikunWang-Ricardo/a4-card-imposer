@@ -114,4 +114,4 @@ python make_cards_pdf.py \
 
 ## License
 
-MIT License
+GPL-3.0 License
