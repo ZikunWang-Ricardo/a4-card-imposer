@@ -8,32 +8,25 @@ def raster_compress_pdf(input_pdf: Path, output_pdf: Path, dpi: int = 300, quali
     """
     Re-render each page at a target DPI, encode as JPEG, and rebuild a PDF.
     Page physical size stays the same; file size usually drops substantially.
+    pdf页面图片化
     """
     src = fitz.open(str(input_pdf))
     dst = fitz.open()
 
-    zoom = dpi / 72.0  # PDF points are 72 DPI
+    zoom = dpi / 72.0  # resize DPI / DPI可以自己根据需求改
     mat = fitz.Matrix(zoom, zoom)
 
     for i in range(len(src)):
         page = src.load_page(i)
 
-        pix = page.get_pixmap(matrix=mat, alpha=False)  # render page
+        pix = page.get_pixmap(matrix=mat, alpha=False)  
         img = Image.open(io.BytesIO(pix.tobytes("ppm"))).convert("RGB")
-
-        # Encode as JPEG with requested quality
         buf = io.BytesIO()
         img.save(buf, format="JPEG", quality=quality, optimize=True)
         jpg_bytes = buf.getvalue()
-
-        # Create new page with identical size (in points)
         rect = page.rect
         new_page = dst.new_page(width=rect.width, height=rect.height)
-
-        # Insert JPEG to fill the page exactly
         new_page.insert_image(rect, stream=jpg_bytes)
-
-    # Save with compression enabled
     dst.save(str(output_pdf), deflate=True, garbage=4, clean=True)
     dst.close()
     src.close()
