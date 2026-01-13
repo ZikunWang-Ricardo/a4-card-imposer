@@ -16,7 +16,6 @@ def mm(x: float) -> float:
 def list_images(folder: Path) -> List[Path]:
     exts = {".jpg", ".jpeg", ".png"}
     files = [p for p in folder.iterdir() if p.is_file() and p.suffix.lower() in exts]
-    # Natural-ish sort: 1,2,10 instead of 1,10,2 when filenames are numeric
     def sort_key(p: Path):
         stem = p.stem
         return (stem.zfill(32), p.name.lower())
@@ -39,8 +38,6 @@ def match_pairs(fronts: List[Path], backs: List[Path], mode: str) -> List[Tuple[
                 "\n  ".join(missing)
             )
         return pairs
-
-    # mode == "by_order"
     if len(fronts) != len(backs):
         raise RuntimeError(f"Front/back counts differ: {len(fronts)} vs {len(backs)}")
     return list(zip(fronts, backs))
@@ -53,14 +50,10 @@ def draw_image_fit(c: canvas.Canvas, img_path: Path, x: float, y: float, w: floa
     with Image.open(img_path) as im:
         im = im.convert("RGB")
         iw, ih = im.size
-        # scale to fit
         scale = min(w / iw, h / ih)
         dw, dh = iw * scale, ih * scale
         dx = x + (w - dw) / 2.0
         dy = y + (h - dh) / 2.0
-
-        # ReportLab can take a PIL image via temp file is slower; use filename directly
-        # but ensure the image is in a supported format; JPG/PNG are fine.
         c.drawImage(str(img_path), dx, dy, dw, dh, preserveAspectRatio=True, mask='auto')
 
 
@@ -72,10 +65,6 @@ def positions_grid(
     margin_top: float, margin_bottom: float,
     gap_x: float, gap_y: float
 ) -> List[Tuple[float, float]]:
-    """
-    Returns list of (x,y) lower-left positions for each slot in row-major order.
-    Coordinates in points.
-    """
     usable_w = page_w - margin_left - margin_right
     usable_h = page_h - margin_top - margin_bottom
 
@@ -121,7 +110,7 @@ def draw_cut_marks(c: canvas.Canvas, slots: List[Tuple[float, float]], card_w: f
             # vertical mark
             c.line(cx, cy - mark_len, cx, cy + mark_len)
 
-# ---------- Main ----------
+
 def main():
     ap = argparse.ArgumentParser(description="Place front/back card JPGs onto A4 PDF pages for duplex printing.")
     ap.add_argument("--fronts", required=True, help="Folder containing front images (JPG/PNG).")
